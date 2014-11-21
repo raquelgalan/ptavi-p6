@@ -50,9 +50,9 @@ try:
 except socket.error:
     print ("Error: No server listening at " + SERVER + " port " + str(PORT))
     raise SystemExit
-
+#sip = " SIP/2.0 "
 print 'Recibido -- \r\n', data
-if data == " SIP/2.0 100 Trying\r\n\r\n" + " SIP/2.0 180 Ring\r\n\r\n" + " SIP/2.0 200 OK\r\n\r\n":
+if data == " SIP/2.0 100 Trying\r\n" + " SIP/2.0 180 Ring\r\n" + " SIP/2.0 200 OK\r\n":
     METODO = "ACK"
     LINE = METODO + " sip:" + RECEPTOR + "@" + SERVER + " SIP/2.0"
     my_socket.send(LINE + '\r\n')
