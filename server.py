@@ -19,43 +19,41 @@ class EchoHandler(SocketServer.DatagramRequestHandler):
         while 1:
             # Leyendo línea a línea lo que nos envía el cliente
             line = self.rfile.read()
-            #lista = line.split
-            #print len(line)
-            parametros = sys.argv
+            lista = line.split()
+            
             if line != "":
-                #if parametros != 4:
+                if len(lista) == 3:
                     #print len(lista)
-                print "El cliente nos manda: " + line
-                metodo = line.split(" ")[0]
-                print metodo
-                
-                if metodo == "INVITE":
-                    trying = " SIP/2.0 100 Trying\r\n"
-                    self.wfile.write(trying)
-                    Ring = " SIP/2.0 180 Ring\r\n"
-                    self.wfile.write(Ring)
-                    line = " SIP/2.0 200 OK\r\n"
-                    self.wfile.write(line)
+                    print "El cliente nos manda: " + line
+                    metodo = line.split(" ")[0]
+                    print metodo
+                    
+                    if metodo == "INVITE":
+                        trying = " SIP/2.0 100 Trying\r\n"
+                        self.wfile.write(trying)
+                        Ring = " SIP/2.0 180 Ring\r\n"
+                        self.wfile.write(Ring)
+                        line = " SIP/2.0 200 OK\r\n"
+                        self.wfile.write(line)
                      
-                 
-                elif metodo == "ACK":
-                    print "RTP"
-                    aEjecutar = './mp32rtp -i 127.0.0.1 -p 23032 < ' + fichero_audio
-                    print "Vamos a ejecutar", aEjecutar
-                    os.system(aEjecutar)
-                    print "Finaliza"
+                    elif metodo == "ACK":
+                        print "RTP"
+                        aEjecutar = './mp32rtp -i 127.0.0.1 -p 23032 < ' + fichero_audio
+                        print "Vamos a ejecutar", aEjecutar
+                        os.system(aEjecutar)
+                        print "Finaliza"
 
-                elif metodo == "BYE":
-                    line = " SIP/2.0 200 OK\r\n"
-                    self.wfile.write(line)
+                    elif metodo == "BYE":
+                        line = " SIP/2.0 200 OK\r\n"
+                        self.wfile.write(line)
+                    else:
+                        print "metodo incorrecto"
+                        line = " SIP/2.0 405 Method Not Allowed\r\n"
+                        self.wfile.write(line)
                 else:
                     print "metodo incorrecto"
-                    line = " SIP/2.0 405 Method Not Allowed\r\n"
+                    line = " SIP/2.0 400 Bad Request\r\n\r\n"
                     self.wfile.write(line)
-                #else:
-                 #   print "metodo incorrecto"
-                 #   line = " SIP/2.0 400 Bad Request\r\n\r\n"
-                 #   self.wfile.write(line)
 
             # Si no hay más líneas salimos del bucle infinito
             else:
