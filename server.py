@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-15 -*-
+# Raquel Galán Montes
 """
 Clase (y programa principal) para un servidor de eco en UDP simple
 """
@@ -7,52 +8,57 @@ Clase (y programa principal) para un servidor de eco en UDP simple
 import SocketServer
 import sys
 import os
+# Para comprobar que los ficheros coinciden con el nombre
+import os.path
 
 
 class EchoHandler(SocketServer.DatagramRequestHandler):
     """
     Echo server class
     """
-
     def handle(self):
-        # Escribe dirección y puerto del cliente (de tupla client_address)
+
         while 1:
             # Leyendo línea a línea lo que nos envía el cliente
+            # El cliente envía: METODO "sip:"RECEPTOR"@"SERVER "SIP/2.0"
             line = self.rfile.read()
             lista = line.split()
-            
             if line != "":
                 if len(lista) == 3:
-                    #print len(lista)
                     print "El cliente nos manda: " + line
                     metodo = line.split(" ")[0]
-                    print metodo
-                    
+
                     if metodo == "INVITE":
-                        trying = " SIP/2.0 100 Trying\r\n"
+                        print "Comienza INVITE"
+                        trying = "SIP/2.0 100 Trying\r\n\r\n"
                         self.wfile.write(trying)
-                        Ring = " SIP/2.0 180 Ring\r\n"
-                        self.wfile.write(Ring)
-                        line = " SIP/2.0 200 OK\r\n"
+                        Ringing = "SIP/2.0 180 Ringing\r\n\r\n"
+                        self.wfile.write(Ringing)
+                        line = "SIP/2.0 200 OK\r\n\r\n"
                         self.wfile.write(line)
-                     
+                        print "Acaba INVITE"
+
                     elif metodo == "ACK":
-                        print "RTP"
-                        aEjecutar = './mp32rtp -i 127.0.0.1 -p 23032 < ' + fichero_audio
+                        print "Recibido ACK"
+                        print "Comienza RTP"
+                        aEjecutar = './mp32rtp -i 127.0.0.1 -p 23032 < '
+                        aEjecutar += FICHERO_AUDIO
                         print "Vamos a ejecutar", aEjecutar
                         os.system(aEjecutar)
-                        print "Finaliza"
+                        print "Acaba RTP"
 
                     elif metodo == "BYE":
-                        line = " SIP/2.0 200 OK\r\n"
+                        print "Comienza BYE"
+                        line = "SIP/2.0 200 OK\r\n\r\n"
                         self.wfile.write(line)
+                        print "Acaba BYE"
                     else:
                         print "metodo incorrecto"
-                        line = " SIP/2.0 405 Method Not Allowed\r\n"
+                        line = "SIP/2.0 405 Method Not Allowed\r\n\r\n"
                         self.wfile.write(line)
                 else:
                     print "metodo incorrecto"
-                    line = " SIP/2.0 400 Bad Request\r\n\r\n"
+                    line = "SIP/2.0 400 Bad Request\r\n\r\n"
                     self.wfile.write(line)
 
             # Si no hay más líneas salimos del bucle infinito
@@ -61,12 +67,21 @@ class EchoHandler(SocketServer.DatagramRequestHandler):
 
 
 if __name__ == "__main__":
-    
-    try:
 
+    try:
+        # Verificar los argumentos
         SERVER = sys.argv[1]
         PORT = int(sys.argv[2])
-        fichero_audio = str(sys.argv[3])
+        FICHERO_AUDIO = str(sys.argv[3])
+
+        # os.path.exists solo devuelve True si hay un fichero con ese nombre
+        if os.path.exists(FICHERO_AUDIO) is False:
+            raise SystemExit
+        # Sale error si le introducimos argumentos de más
+        parametros = len(sys.argv)
+        if parametros != 4:
+            print "parametros"
+            raise SystemExit
 
         # Creamos servidor de eco y escuchamos
         serv = SocketServer.UDPServer(("", PORT), EchoHandler)
